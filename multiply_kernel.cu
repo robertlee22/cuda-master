@@ -4,9 +4,9 @@ using namespace std;
 
 // A shape = (M,K) , B shape = (K,N)
 // C shape = (M,N)
-int M = 1000
-int K = 100
-int N = 1000
+int M = 4096;
+int N = 4096;
+int K = 1024;
 
 __global__ void multiply(int *A, int *B, int *C, int M, int K, int N){
     // C implementation 
@@ -39,10 +39,10 @@ __global__ void multiply(int *A, int *B, int *C, int M, int K, int N){
     for(int gi=0; gi*gridDim.x < M; gi++){
         for(int gj=0; gj*blockDim.x < N; gj++){
             int sum = 0; 
-            row = mi + gi*gridDim.x 
-            col = gj*blockDim.x + mj
+            int row = mi + gi*gridDim.x ;
+            int col = gj*blockDim.x + mj;
             for(int k = 0; k<K; k++){
-                sum += A[row* K + k] * B[k*K + col]
+                sum += A[row* K + k] * B[k*K + col];
             }
             C[row* N + col] = sum; 
         }
@@ -52,7 +52,9 @@ __global__ void multiply(int *A, int *B, int *C, int M, int K, int N){
 
 int main() {
 
-    int *A, *B, *C 
+    int *A; 
+    int *B; 
+    int *C ;
     
     cudaMallocManaged(&A, sizeof(int) * M*K); 
     cudaMallocManaged(&B, sizeof(int) * K*N); 
@@ -68,14 +70,21 @@ int main() {
 
     //mem prefetch
 
+    cudaMemPrefetchAsync(A, sizeof(int)* M*K, 0, 0);
+    cudaMemPrefetchAsync(B, sizeof(int)* K*N, 0, 0);
+    cudaMemPrefetchAsync(C, sizeof(int)* M*N, 0, 0);
+
     //kernel multiply
-    multiply<<<16, 16>>>(A,B,C, M,K,N); 
+    multiply<<<128, 256>>>(A,B,C, M,K,N); 
+    cudaDeviceSynchronize(); 
 
     //check result 
     bool pass = true ;
     for(int i = 0; i< M*N; i++){
-        if(C[i]!=100){
+        if(C[i]!=K){
+            cout << "C[" << i << "] = " << C[i] << endl;
             pass = false ;
+            break;
         }
     }
 

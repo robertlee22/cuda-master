@@ -19,17 +19,26 @@ int main(){
     float *x , *y ,*sum ; 
     cudaMallocManaged(&x, V1M*sizeof(float));
     cudaMallocManaged(&y, V1M*sizeof(float));
+    cudaMallocManaged(&sum, V1M*sizeof(float));
 
     for(int i = 0; i<V1M; i++){
         x[i] = 1.0f; 
         y[i] = 2.0f; 
     }
 
+
+    cudaMemPrefetchAsync(x, V1M*sizeof(float), 0, 0);
+    cudaMemPrefetchAsync(y, V1M*sizeof(float), 0, 0);
+    cudaMemPrefetchAsync(sum, V1M*sizeof(float), 0, 0);
+
     // kernel add 
 
     int block_dim = 256; 
     int grid_dim = (V1M + block_dim - 1) / block_dim ; 
     add<<<grid_dim, block_dim  >>>(V1M, x, y, sum); 
+
+
+    cudaDeviceSynchronize();
 
     // check result 
     for (int i = 0; i<V1M; i++){
