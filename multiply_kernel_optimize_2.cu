@@ -23,18 +23,28 @@ __global__ void multiply(int *A, int *B, int *C, int M, int K, int N){
        
         for(int t = 0; t * TILE < K; t++){
             // fetch to tile , sync ; 
-            int ax = t*TILE + threadIdx.y ; 
-            int by = t*TILE + threadIdx.x ; 
-            
-            As[threadIdx.y][threadIdx.x] = A[row][ax]; 
-            Bs[threadIdx.y][threadIdx.x] = B[by][col]; 
+            int ax = t*TILE + threadIdx.x ; 
+            int by = t*TILE + threadIdx.y ; 
 
-            __syncThreads__() ; 
+            if(row < M && ax < K){
+                As[threadIdx.y][threadIdx.x] = A[row*K + ax]; 
+            }else{
+                As[threadIdx.y][threadIdx.x] = 0;
+            }
+
+            if(by < K && col < N){
+                Bs[threadIdx.y][threadIdx.x] = B[by*N + col]; 
+            }else{
+                Bs[threadIdx.y][threadIdx.x] = 0;
+            }
+            
+            __syncthreads() ; 
+            
             // compute 
             for(int k=0; k< TILE; k++){
-                sum += As[row][k]*Bs[k][col]; 
+                sum += As[threadIdx.y][k]*Bs[k][threadIdx.x]; 
             }
-            __syncThreads__() ;
+            __syncthreads() ;
         }
         C[row* N + col] = sum; 
     }
@@ -67,7 +77,7 @@ int main() {
 
     //kernel multiply
     dim3 block(16,16); 
-    dim3 grid((N+15)/16, (M+16)/16)
+    dim3 grid((N+15)/16, (M+16)/16);
     multiply<<<grid, block>>>(A,B,C, M,K,N); 
     cudaDeviceSynchronize(); 
 
