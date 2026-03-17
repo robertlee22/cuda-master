@@ -5,9 +5,9 @@
 
 int main() {
 
-    int M = 256;
-    int N = 256;
-    int K = 256;
+    int M = 4096*4;
+    int N = 4096*4;
+    int K = 1024*4;
 
     float *A, *B, *C;
 
@@ -53,3 +53,7 @@ int main() {
 
     return 0;
 }
+
+/*
+nvcc  -O3 -arch=sm_90 -I ~/cuda/cutlass/include cutlass_gemm_basic.cu -o cutlass_gemm_basic.out
+*/
