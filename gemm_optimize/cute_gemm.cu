@@ -82,9 +82,9 @@ gemm_device(ProblemShape shape_MNK, CtaTiler cta_tiler,
 
 
 int main() {
-    int M = 4096 * 1; 
-    int N = 4096 * 1; 
-    int K = 1024 * 1; 
+    int M = 4096 * 4; 
+    int N = 4096 * 4; 
+    int K = 1024 * 4; 
 
     // 问题规模可为动态 int；CTA tile 必须用 Int<…> 静态形状，与官方 cute_officail_gemm_1 一致
     auto probShape = cute::make_shape(int(M), int(N), int(K));

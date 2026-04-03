@@ -8,7 +8,7 @@
 
 - **矩阵规模**  
   - `naive_0`：M=4096, N=4096, K=1024  
-  - `naive_1` / `naive_2` / `cutlass_gemm_basic` / `cutlass_gemm_pro`：M=N=16384, K=4096（即 4096×4）
+  - `naive_1` / `naive_2` / `cutlass_gemm_basic` / `cutlass_gemm_pro` / `cute_gemm`：M=N=16384, K=4096（即 4096×4）
 - **分析工具**：`nsys_easy` → 生成 `nsys_easy.nsys-rep`，再经 `cuda_gpu_sum.py` 得到 **CUDA GPU Summary (Kernels/MemOps)**。
 - **指标**：各操作的 Time (%)、Total Time (ns)、Instances、Avg/Med/Min/Max、Category、Operation。
 
@@ -23,6 +23,7 @@
 | **naive_2** | `naive_2.out` | 在 naive_1 基础上增加 **共享内存分块**（TILE=32），沿 K 维度分块加载 A/B，减少全局内存访问 |
 | **cutlass_basic** | `cutlass_gemm_basic.out` | CUTLASS 官方 float GEMM（MmaPipelined），Unified Memory |
 | **cutlass_pro** | `cutlass_gemm.out` | CUTLASS **FP16** GEMM，**显式设备内存**（cudaMalloc + cudaMemcpy H2D/D2H） |
+| **cute_gemm** | `cute_gemm.out` | **CuTe** 手写 `gemm_device`：float，CTA tile 128×128×8，`cp.async` + 共享内存；**Unified Memory**（cudaMallocManaged） |
 
 ---
 
@@ -86,6 +87,16 @@
 
 ---
 
+### 3.6 cute_gemm（CuTe tensor GEMM + Unified Memory）
+
+- **CUDA Kernel** `gemm_device<…>`（CuTe 分块 + `cp.async` + `gemm`）  
+  - Time: **89.3%**，Total: **244,221,854 ns**（约 244.2 ms），Instances: 1  
+- **Unified Host-to-Device**：**10.7%**，**29,220,480 ns**，**16,948** 次  
+
+**结论**：与同规模 float + Unified Memory 的 **cutlass_basic**（内核约 252.3 ms）相比，CuTe 版内核约 **244.2 ms**，略快约 **3%**；H2D 次数（16948）多于 cutlass_basic（8700），但总 H2D 时间（约 29.2 ms）高于 cutlass_basic（约 20.3 ms），说明统一内存迁移仍占一定比例，但计算内核已较优。
+
+---
+
 ## 4. 内核时间与优化效果对比（同规模：M=N=16384, K=4096）
 
 | 版本 | 内核总时间 (ns) | 内核占比 | 相对 naive_1 内核加速 |
@@ -93,6 +104,7 @@
 | naive_1 | 343,716,183 | 90.4% | 1.0×（基准） |
 | naive_2 | 271,443,209 | 88.1% | ≈1.27× |
 | cutlass_basic | 252,263,796 | 92.5% | ≈1.36× |
+| cute_gemm | 244,221,854 | 89.3% | ≈1.41× |
 | cutlass_pro | 33,863,442 | 46.1% | ≈10.2×（FP16 + 显存） |
 
 *注：naive_0 为更小规模，未列入上表同规模对比。*
@@ -110,7 +122,10 @@
 3. **naive_2 → cutlass_basic**  
    - 使用 **CUTLASS float GEMM（MmaPipelined）** 替代手写内核，在相同 float 规模下进一步缩短内核时间，体现库在流水线与内存层次上的优化。
 
-4. **cutlass_basic → cutlass_pro**  
+4. **cutlass_basic ↔ cute_gemm（同规模 float + Unified Memory）**  
+   - **CuTe** 版 `gemm_device`（128×128×8 tile、`cp.async`）在 nsys 中内核时间略低于 CUTLASS float 基本示例（约 **244 ms vs 252 ms**），说明在相同数据路径下手写 CuTe 分块已接近甚至略优于该 CUTLASS 配置；两者均受 Unified Memory 下大量小粒度 H2D 影响。
+
+5. **cutlass_basic → cutlass_pro**  
    - **数据类型**：float → **FP16 (half_t)**，算力与带宽利用率提升。  
    - **内存管理**：Unified Memory → **显式 cudaMalloc + cudaMemcpy H2D/D2H**，减少统一内存的按需迁移与碎片化。  
    - 内核时间从 252 ms 降到 33.86 ms，整体 GPU 时间约 73 ms；此时 H2D 占比超过一半，后续可考虑 **异步传输 + 多 stream / 重叠** 以进一步优化端到端时间。
@@ -120,7 +135,7 @@
 ## 6. 结论
 
 - **手写内核**：从 1D 多元素/线程 → 2D 一元素/线程 → 共享内存分块，每一步都带来可观测的内核加速。  
-- **CUTLASS**：float 版本已优于手写 tiled 版本；FP16 + 显式设备内存使内核再提升约 7.4×，总 GPU 时间进入数十 ms 量级。  
+- **CUTLASS / CuTe**：CUTLASS float 已优于手写 naive tiled；**cute_gemm** 在同规模 float + Unified Memory 下内核时间略低于 `cutlass_gemm_basic`；FP16 + 显式设备内存使内核再提升约 7.4×，总 GPU 时间进入数十 ms 量级。  
 - **Nsight Systems** 的 CUDA GPU Summary 清晰区分了 **CUDA_KERNEL** 与 **MEMORY_OPER**（H2D/D2H），便于定位是计算瓶颈还是传输瓶颈，并指导下一步优化（如重叠传输、增大 batch 或使用 Tensor Core 的更高阶 CUTLASS 配置）。
 
 ---
