@@ -138,6 +138,23 @@ int main() {
         C, dC, sC, tC,
         1.0f, 0.0f
     );
+
+    cudaDeviceSynchronize(); 
+
+    bool isPass = true; 
+    for (int i = 0; i<M*N; i++){
+        
+            if ( abs(C[i] - 1024.0f *4) > 1e-5 ) {
+                isPass = false;
+            }
+    
+    }
+
+    if (isPass){
+        std::cout<< "pass!"<<std::endl; 
+    }else{
+        std::cout<< "not pass!"<<std::endl; 
+    }
     
     return 0; 
 }
