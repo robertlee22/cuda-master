@@ -20,7 +20,7 @@ template <class ProblemShape, class CtaTiler,
           class TC, class CStride, class CSmemLayout, class CThreadLayout,
           class Alpha, class Beta>
 __global__ static
-__launch_bounds__(size_v<CThreadLayout>)
+__launch_bounds__(decltype(size(CThreadLayout{}))::value)
 void
 gemm_device(ProblemShape shape_MNK, CtaTiler cta_tiler,
             TA const* A, AStride dA, ASmemLayout sA_layout, AThreadLayout tA,
@@ -54,7 +54,9 @@ gemm_device(ProblemShape shape_MNK, CtaTiler cta_tiler,
     Tensor tCsB = local_partition(sB, tC, threadIdx.x, Step<X, _1>{}); //(THR_M = 8,BLK_K =8 )
     Tensor tCgC = local_partition(gC, tC, threadIdx.x, Step<_1,_1>{});   // (THR_M=8,THR_N=8)
 
-    Tensor tCrC = make_tensor_like(tCgC); 
+    Tensor tCrC = make_tensor_like(tCgC);
+
+    clear(tCrC);
 
     auto K_TILE_MAX = size<2>(tAgA);
 
@@ -84,7 +86,8 @@ int main() {
     int N = 4096 * 1; 
     int K = 1024 * 1; 
 
-    auto probShape = cute::make_shape(M,N,K);
+    // 问题规模可为动态 int；CTA tile 必须用 Int<…> 静态形状，与官方 cute_officail_gemm_1 一致
+    auto probShape = cute::make_shape(int(M), int(N), int(K));
 
     float *A; 
     float *B; 
@@ -105,14 +108,14 @@ int main() {
 
     // determine stride 
     // determine smem layout , cta tile
-    constexpr int blockM = 128;
-    constexpr int blockN = 128;
-    constexpr int blockK = 8;
-    auto cta_tile = cute::make_shape(blockM, blockN, blockK); 
+    auto bM = Int<128>{};
+    auto bN = Int<128>{};
+    auto bK = Int<8>{};
+    auto cta_tile = cute::make_shape(bM, bN, bK);
 
-    auto sA = make_layout(make_shape(Int<blockM>{}, Int<blockK>{}));
-    auto sB = make_layout(make_shape(Int<blockN>{}, Int<blockK>{}));
-    auto sC = make_layout(make_shape(Int<blockM>{}, Int<blockN>{}));
+    auto sA = make_layout(make_shape(bM, bK));
+    auto sB = make_layout(make_shape(bN, bK));
+    auto sC = make_layout(make_shape(bM, bN));
 
     // thread layout 
 
@@ -120,14 +123,13 @@ int main() {
     auto tB = cute::make_layout(cute::make_shape(Int<32>{}, Int<8>{})); 
     auto tC = cute::make_layout(cute::make_shape(Int<16>{}, Int<16>{})); 
     
-    dim3 dimBlock(cute::size(tC)); 
-    dim3 dimGrid(cute::size(cute::ceil_div(M, blockM)),
-                 cute::size(cute::ceil_div(N, blockN)));
+    dim3 dimBlock(cute::size(tC));
+    dim3 dimGrid(cute::size(cute::ceil_div(int(M), bM)),
+                 cute::size(cute::ceil_div(int(N), bN)));
 
-
-    auto dA = cute::make_stride(Int<1>{}, M); 
-    auto dB = cute::make_stride(Int<1>{}, N); 
-    auto dC = cute::make_stride(Int<1>{}, M); 
+    auto dA = cute::make_stride(Int<1>{}, int(M));
+    auto dB = cute::make_stride(Int<1>{}, int(N));
+    auto dC = cute::make_stride(Int<1>{}, int(M)); 
     
     gemm_device<<<dimGrid, dimBlock>>>(
         probShape, cta_tile, 
