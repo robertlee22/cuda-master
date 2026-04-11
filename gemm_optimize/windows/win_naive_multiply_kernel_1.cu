@@ -10,7 +10,7 @@ int K = 1024*2;
 
 #define TILE 32
 
-__global__ void multiply(int *A, int *B, int *C, int M, int K, int N){
+__global__ void multiply(float *A, float *B, float *C, int M, int K, int N){
     // cuda implementation 
     int col = threadIdx.x + blockDim.x* blockIdx.x ; 
     int row =  threadIdx.y + blockDim.y * blockIdx.y; 
@@ -29,13 +29,13 @@ __global__ void multiply(int *A, int *B, int *C, int M, int K, int N){
 
 int main() {
 
-    int *A; 
-    int *B; 
-    int *C ;
+    float *A; 
+    float *B; 
+    float *C ;
     
-    cudaMallocManaged(&A, sizeof(int) * M*K); 
-    cudaMallocManaged(&B, sizeof(int) * K*N); 
-    cudaMallocManaged(&C, sizeof(int)* N*M); 
+    cudaMallocManaged(&A, sizeof(float) * M*K); 
+    cudaMallocManaged(&B, sizeof(float) * K*N); 
+    cudaMallocManaged(&C, sizeof(float)* N*M); 
 
     for(int i = 0; i< M*K; i++){
         A[i] = 1; 
@@ -60,7 +60,7 @@ int main() {
     //check result 
     bool pass = true ;
     for(int i = 0; i< M*N; i++){
-        if(C[i]!=K){
+        if(abs(C[i]-K)>1e-5){
             cout << "C[" << i << "] = " << C[i] << endl;
             pass = false ;
             break;
