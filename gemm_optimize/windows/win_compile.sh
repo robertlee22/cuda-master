@@ -41,7 +41,13 @@
           & "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.1\bin\nvcc.exe" win_naive_multiply_kernel_3_dot_6.cu -o naive_win_3_dot_6.exe -ccbin "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64" -std=c++14 -Xcompiler "/utf-8 /EHsc /O2 /MD" -allow-unsupported-compiler
 
 
-          & "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.1\bin\nvcc.exe" win_naive_multiply_kernel_2.cu -o naive_win_2_release.exe -ccbin "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64" -std=c++14 -Xcompiler "/utf-8 /EHsc /O2 /MD" -Xptxas -O3  -allow-unsupported-compiler
+          & "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.1\bin\nvcc.exe" win_naive_multiply_kernel_3_dot_8.cu -o naive_win_3_dot_8.exe -ccbin "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64" -std=c++14 -Xcompiler "/utf-8 /EHsc /O2 /MD" -allow-unsupported-compiler -arch=sm_75
+
+
+          & "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.1\bin\nvcc.exe" win_naive_multiply_kernel_3_dot_9.cu -o naive_win_3_dot_9.exe -ccbin "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64" -std=c++14 -Xcompiler "/utf-8 /EHsc /O2 /MD" -allow-unsupported-compiler -arch=sm_75
+
+
+          & "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v13.1\bin\nvcc.exe" win_naive_multiply_kernel_3.cu -o naive_win_3_release.exe -ccbin "C:\Program Files\Microsoft Visual Studio\18\Community\VC\Tools\MSVC\14.50.35717\bin\Hostx64\x64" -std=c++14 -Xcompiler "/utf-8 /EHsc /O2 /MD" -Xptxas -O3  -allow-unsupported-compiler
 
 
            # CuTe（CUTLASS）：头文件在 CUTLASS 仓库的 include 目录；按需改 -I 路径与 -arch

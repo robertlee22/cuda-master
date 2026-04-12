@@ -1,0 +1,144 @@
+{
+    "extension": "ncu-proj",
+    "files": [
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_naive_3_release.ncu-rep"
+        },
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_naive_3_dot_5_release.ncu-rep"
+        },
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_cute_release.ncu-rep"
+        },
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_naive_3_dot_7_release.ncu-rep"
+        },
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_naive_2_release.ncu-rep"
+        },
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_naive_3_dot_8_release.ncu-rep"
+        },
+        {
+            "path": "../../../../../Documents/NVIDIA Nsight Compute/pro_win_naive_3_dot_9_release.ncu-rep"
+        }
+    ],
+    "launcher": {
+        "SSHConnectionNameKey": "",
+        "activity/interactiveprofile/booststate": "Auto",
+        "activity/interactiveprofile/cachecontrol": "Flush All",
+        "activity/interactiveprofile/clockcontrol": "Boost",
+        "activity/interactiveprofile/cpustacksupportoptions": "Native",
+        "activity/interactiveprofile/disableprofilingstartstop": false,
+        "activity/interactiveprofile/enablecpustacksupport": true,
+        "activity/interactiveprofile/enablenvtxsupport": true,
+        "activity/interactiveprofile/enableprofilingfromstart": true,
+        "activity/interactiveprofile/graphprofiling": "Node",
+        "activity/interactiveprofile/importsass": true,
+        "activity/interactiveprofile/importsource": false,
+        "activity/occupancycalculator/file": "",
+        "activity/profile/applyrules": true,
+        "activity/profile/appreplaybuffer": "File",
+        "activity/profile/appreplaymatch": "Grid",
+        "activity/profile/appreplaymode": "Balanced",
+        "activity/profile/booststate": "Auto",
+        "activity/profile/cachecontrol": "Flush All",
+        "activity/profile/checkexitcode": true,
+        "activity/profile/clockcontrol": "Boost",
+        "activity/profile/cpustacksupportoptions": "Native",
+        "activity/profile/devices": "",
+        "activity/profile/disablepmwarpsampling": false,
+        "activity/profile/disableprofilingstartstop": false,
+        "activity/profile/enablecpustacksupport": false,
+        "activity/profile/enablenvtxsupport": false,
+        "activity/profile/enableprofilingfromstart": true,
+        "activity/profile/filtermode": "Global",
+        "activity/profile/forceoverwrite": true,
+        "activity/profile/graphprofiling": "Node",
+        "activity/profile/importsass": true,
+        "activity/profile/importsource": false,
+        "activity/profile/kernelid": "",
+        "activity/profile/kernelname": "",
+        "activity/profile/kernelnamebase": "Function",
+        "activity/profile/kill": false,
+        "activity/profile/launchcapturecount": 0,
+        "activity/profile/launchskipbeforematchcount": 0,
+        "activity/profile/launchskipcount": 0,
+        "activity/profile/nativestackincludeexcludeoptions": "",
+        "activity/profile/nvtxincludeexcludeoptions": "",
+        "activity/profile/nvtxpushpopscope": "Thread",
+        "activity/profile/outputfile": "pro_win_naive_3_dot_9_release",
+        "activity/profile/pmsamplingbuffersize": 0,
+        "activity/profile/pmsamplinginterval": 0,
+        "activity/profile/pmsamplingmaxpasses": 0,
+        "activity/profile/pythonstackincludeexcludeoptions": "",
+        "activity/profile/rangefilteroptions": "",
+        "activity/profile/rangereplayoptions": "",
+        "activity/profile/replaymode": "Kernel",
+        "activity/profile/samplingBufferSize": 33554432,
+        "activity/profile/samplingInterval": 5,
+        "activity/profile/samplingIntervalAuto": true,
+        "activity/profile/samplingMaxPasses": 5,
+        "activity/profile/sourcefolders": "",
+        "activity/profile/targetprocesses": "All",
+        "activity/profile/warpsamplesperinterval": 0,
+        "activity/systemtrace/environment/process_environment": [
+            {
+                "name": "DISPLAY",
+                "value": ":0"
+            }
+        ],
+        "activity/systemtrace/target/command_line": "\"C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_9.exe\" ",
+        "activity/systemtrace/target/process_name": "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_9.exe",
+        "activity/systemtrace/target/working_directory": "/root/cuda",
+        "platform/linux (x86_64)/device": "root@connect.westd.seetacloud.com:29100 (SSH)",
+        "platform/linux/arguments": "",
+        "platform/linux/environment": "DISPLAY=:0",
+        "platform/linux/environment/history": [
+            "DISPLAY=:0"
+        ],
+        "platform/linux/executable": "/root/cuda/naive_2_not_prefetch.out",
+        "platform/linux/executable/history": [
+            "/root/cuda/naive_2_not_prefetch.out",
+            "/home/primelee/cuda-basic/gemm_optimize/naive_2.out",
+            "/home/primelee/cuda-basic/gemm_optimize/naive2.out",
+            "/home/primelee/cuda-basic/gemm_optimize/cute_gemm.out"
+        ],
+        "platform/linux/workingdir": "/root/cuda",
+        "platform/linux/workingdir/history": [
+            "/root/cuda",
+            "/home/primelee/cuda-basic/gemm_optimize"
+        ],
+        "platform/win32/arguments": "",
+        "platform/win32/environment": "",
+        "platform/win32/executable": "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_9.exe",
+        "platform/win32/executable/history": [
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_9.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_8.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_2_release.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_7.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/win_cute_gemm.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_5.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_release.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_1_release.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/win_cutlass_gemm_pro.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_3_dot_6.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/win_cute_gemm_1.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/win_cute_gemm_2.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_5_release.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_4_release.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_2.exe",
+            "C:/Users/primelee/Desktop/cuda-master/gemm_optimize/windows/naive_win_1.exe"
+        ],
+        "platform/win32/workingdir": "",
+        "platform/windows/device": "localhost",
+        "ssh/linux/authenticationmode": "Password",
+        "ssh/linux/deploymentdir": "%C/nvidia/nsight-compute",
+        "ssh/linux/enabletunneling": true,
+        "ssh/linux/host": "connect.westd.seetacloud.com",
+        "ssh/linux/port": "29100",
+        "ssh/linux/user": "root"
+    },
+    "uuid": "{8ed19fec-864f-4e2d-b6ff-5960052abb1a}",
+    "version": "1.0"
+}

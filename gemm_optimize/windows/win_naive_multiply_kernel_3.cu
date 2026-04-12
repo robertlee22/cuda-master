@@ -1,5 +1,6 @@
 #include <cuda_runtime.h>
 
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 
@@ -30,10 +31,10 @@ constexpr int THREADS = (BM / TM) * (BN / TN);  // 16 * 16 = 256
 
 // +1 column padding reduces shared-memory bank conflicts on the inner (K / N) dimension.
 __global__ void __launch_bounds__(THREADS, 2)
-multiply(const int* __restrict__ A, const int* __restrict__ B, int* __restrict__ C,
+multiply(const float* __restrict__ A, const float* __restrict__ B, float* __restrict__ C,
          const int m, const int k, const int n) {
-    __shared__ int As[BM][BK + 1];
-    __shared__ int Bs[BK][BN + 1];
+    __shared__ float As[BM][BK + 1];
+    __shared__ float Bs[BK][BN + 1];
 
     const int tx = threadIdx.x % (BN / TN);
     const int ty = threadIdx.x / (BN / TN);
@@ -41,12 +42,12 @@ multiply(const int* __restrict__ A, const int* __restrict__ B, int* __restrict__
     const int row0 = blockIdx.y * BM + ty * TM;
     const int col0 = blockIdx.x * BN + tx * TN;
 
-    int creg[TM][TN];
+    float creg[TM][TN];
 #pragma unroll
     for (int i = 0; i < TM; ++i) {
 #pragma unroll
         for (int j = 0; j < TN; ++j) {
-            creg[i][j] = 0;
+            creg[i][j] = 0.f;
         }
     }
 
@@ -58,24 +59,24 @@ multiply(const int* __restrict__ A, const int* __restrict__ B, int* __restrict__
             const int ac = idx % BK;
             const int rr = blockIdx.y * BM + ar;
             const int cc = k0 + ac;
-            As[ar][ac] = (rr < m && cc < k) ? A[static_cast<size_t>(rr) * k + cc] : 0;
+            As[ar][ac] = (rr < m && cc < k) ? A[static_cast<size_t>(rr) * k + cc] : 0.f;
         }
         for (int idx = threadIdx.x; idx < BK * BN; idx += THREADS) {
             const int br = idx / BN;
             const int bc = idx % BN;
             const int rr = k0 + br;
             const int cc = blockIdx.x * BN + bc;
-            Bs[br][bc] = (rr < k && cc < n) ? B[static_cast<size_t>(rr) * n + cc] : 0;
+            Bs[br][bc] = (rr < k && cc < n) ? B[static_cast<size_t>(rr) * n + cc] : 0.f;
         }
 
         __syncthreads();
 
 #pragma unroll
         for (int kk = 0; kk < BK; ++kk) {
-            int a0 = As[ty * TM + 0][kk];
-            int a1 = As[ty * TM + 1][kk];
-            int b0 = Bs[kk][tx * TN + 0];
-            int b1 = Bs[kk][tx * TN + 1];
+            float a0 = As[ty * TM + 0][kk];
+            float a1 = As[ty * TM + 1][kk];
+            float b0 = Bs[kk][tx * TN + 0];
+            float b1 = Bs[kk][tx * TN + 1];
             creg[0][0] += a0 * b0;
             creg[0][1] += a0 * b1;
             creg[1][0] += a1 * b0;
@@ -101,19 +102,19 @@ multiply(const int* __restrict__ A, const int* __restrict__ B, int* __restrict__
 int main() {
     CUDA_CHECK(cudaSetDevice(0));
 
-    int* A = nullptr;
-    int* B = nullptr;
-    int* C = nullptr;
+    float* A = nullptr;
+    float* B = nullptr;
+    float* C = nullptr;
 
-    CUDA_CHECK(cudaMallocManaged(&A, sizeof(int) * static_cast<size_t>(M) * K));
-    CUDA_CHECK(cudaMallocManaged(&B, sizeof(int) * static_cast<size_t>(K) * N));
-    CUDA_CHECK(cudaMallocManaged(&C, sizeof(int) * static_cast<size_t>(M) * N));
+    CUDA_CHECK(cudaMallocManaged(&A, sizeof(float) * static_cast<size_t>(M) * K));
+    CUDA_CHECK(cudaMallocManaged(&B, sizeof(float) * static_cast<size_t>(K) * N));
+    CUDA_CHECK(cudaMallocManaged(&C, sizeof(float) * static_cast<size_t>(M) * N));
 
     for (int i = 0; i < M * K; ++i) {
-        A[i] = 1;
+        A[i] = 1.f;
     }
     for (int i = 0; i < K * N; ++i) {
-        B[i] = 1;
+        B[i] = 1.f;
     }
 
     CUDA_CHECK(cudaDeviceSynchronize());
@@ -127,11 +128,11 @@ int main() {
     if (concurrent_managed) {
         cudaMemLocation on_device{cudaMemLocationTypeDevice, device};
         constexpr unsigned int prefetch_flags = 0;
-        CUDA_CHECK(cudaMemPrefetchAsync(A, sizeof(int) * static_cast<size_t>(M) * K, on_device,
+        CUDA_CHECK(cudaMemPrefetchAsync(A, sizeof(float) * static_cast<size_t>(M) * K, on_device,
                                         prefetch_flags, nullptr));
-        CUDA_CHECK(cudaMemPrefetchAsync(B, sizeof(int) * static_cast<size_t>(K) * N, on_device,
+        CUDA_CHECK(cudaMemPrefetchAsync(B, sizeof(float) * static_cast<size_t>(K) * N, on_device,
                                         prefetch_flags, nullptr));
-        CUDA_CHECK(cudaMemPrefetchAsync(C, sizeof(int) * static_cast<size_t>(M) * N, on_device,
+        CUDA_CHECK(cudaMemPrefetchAsync(C, sizeof(float) * static_cast<size_t>(M) * N, on_device,
                                         prefetch_flags, nullptr));
     }
 
@@ -141,9 +142,11 @@ int main() {
     CUDA_CHECK(cudaGetLastError());
     CUDA_CHECK(cudaDeviceSynchronize());
 
+    constexpr float expected = static_cast<float>(K);
+    constexpr float tol = 1e-3f;
     bool pass = true;
     for (int i = 0; i < M * N; ++i) {
-        if (C[i] != K) {
+        if (std::fabs(C[i] - expected) > tol) {
             std::cout << "C[" << i << "] = " << C[i] << std::endl;
             pass = false;
             break;

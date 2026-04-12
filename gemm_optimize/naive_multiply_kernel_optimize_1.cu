@@ -4,9 +4,9 @@ using namespace std;
 
 // A shape = (M,K) , B shape = (K,N)
 // C shape = (M,N)
-int M = 4096*4;
-int N = 4096*4;
-int K = 1024*4;
+int M = 4096*2;
+int N = 4096*2;
+int K = 1024;
 
 #define TILE 32
 
@@ -44,11 +44,15 @@ int main() {
 
     }
 
-    //mem prefetch
-
-    cudaMemPrefetchAsync(A, sizeof(int)* M*K, 0, 0);
-    cudaMemPrefetchAsync(B, sizeof(int)* K*N, 0, 0);
-    cudaMemPrefetchAsync(C, sizeof(int)* M*N, 0, 0);
+    // mem prefetch (CUDA 13.1 signature uses cudaMemLocation)
+    int device = 0;
+    cudaGetDevice(&device);
+    cudaMemLocation location;
+    location.type = cudaMemLocationTypeDevice;
+    location.id = device;
+    cudaMemPrefetchAsync(A, sizeof(int) * M * K, location, 0, 0);
+    cudaMemPrefetchAsync(B, sizeof(int) * K * N, location, 0, 0);
+    cudaMemPrefetchAsync(C, sizeof(int) * M * N, location, 0, 0);
 
     //kernel multiply
     dim3 block(TILE, TILE); 
